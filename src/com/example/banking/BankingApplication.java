@@ -60,17 +60,27 @@ public class BankingApplication {
         String name = scanner.next();
 
         System.out.print("Enter account number: ");
-        long number = scanner.nextLong();
+        long accountNumber = scanner.nextLong();
+
+        System.out.print("Enter email: ");
+        String email = scanner.next();
 
         System.out.print("Enter creation date: ");
         String creationDate = scanner.next();
 
-        System.out.print("Enter initial balance: ");
-        double initialBalance = scanner.nextDouble();
+        System.out.print("Select account type (1. Savings, 2. Current): ");
+        int accountTypeChoice = scanner.nextInt();
 
-        // Add validation for minimum balance if needed
+        BankAccount newAccount;
+        if (accountTypeChoice == 1) {
+            newAccount = new SavingsAccount(name, accountNumber, email, creationDate, 0);
+        } else if (accountTypeChoice == 2) {
+            newAccount = new CurrentAccount(name, accountNumber, email, creationDate, 0);
+        } else {
+            System.out.println("Invalid account type choice. Account creation failed.");
+            return;
+        }
 
-        BankAccount newAccount = new BankAccount(name, number, creationDate, initialBalance);
         accounts.add(newAccount);
 
         System.out.println("Account created successfully!");
@@ -79,8 +89,8 @@ public class BankingApplication {
     private static void displayAllAccounts() {
         System.out.println("All Accounts:");
         for (BankAccount account : accounts) {
-            System.out.println("Name: " + account.name + ", Number: " + account.number +
-                    ", Creation Date: " + account.creationDate + ", Balance: " + account.balance);
+            account.displayAccountInfo();
+            System.out.println("------------------------------");
         }
     }
 
@@ -89,10 +99,10 @@ public class BankingApplication {
         long accountNumber = scanner.nextLong();
 
         for (BankAccount account : accounts) {
-            if (account.number == accountNumber) {
+            if (account.getAccountNumber() == accountNumber) {
                 System.out.print("Enter new balance: ");
                 double newBalance = scanner.nextDouble();
-                account.balance = newBalance;
+                account.setBalance(newBalance);
                 System.out.println("Account updated successfully!");
                 return;
             }
@@ -105,7 +115,7 @@ public class BankingApplication {
         System.out.print("Enter account number to delete: ");
         long accountNumber = scanner.nextLong();
 
-        accounts.removeIf(account -> account.number == accountNumber);
+        accounts.removeIf(account -> account.getAccountNumber() == accountNumber);
         System.out.println("Account deleted successfully!");
     }
 
@@ -114,11 +124,16 @@ public class BankingApplication {
         long accountNumber = scanner.nextLong();
 
         for (BankAccount account : accounts) {
-            if (account.number == accountNumber) {
-                System.out.print("Enter deposit amount: ");
+            if (account.getAccountNumber() == accountNumber) {
+                System.out.print("Enter deposit amount (minimum 500): ");
                 double depositAmount = scanner.nextDouble();
-                account.balance += depositAmount;
-                System.out.println("Amount deposited successfully!");
+                if (depositAmount >= 500) {
+                    double newBalance = account.getBalance() + depositAmount;
+                    account.setBalance(newBalance);
+                    System.out.println("Amount deposited successfully!");
+                } else {
+                    System.out.println("Deposit amount must be at least 500. Deposit failed.");
+                }
                 return;
             }
         }
@@ -131,19 +146,18 @@ public class BankingApplication {
         long accountNumber = scanner.nextLong();
 
         for (BankAccount account : accounts) {
-            if (account.number == accountNumber) {
-                System.out.print("Enter withdrawal amount: ");
+            if (account.getAccountNumber() == accountNumber) {
+                System.out.print("Enter withdrawal amount (minimum 100): ");
                 double withdrawalAmount = scanner.nextDouble();
-
-                // Add validation for minimum balance if needed
-
-                if (account.balance >= withdrawalAmount) {
-                    account.balance -= withdrawalAmount;
+                if (withdrawalAmount >= 100 && account.getBalance() >= withdrawalAmount) {
+                    double newBalance = account.getBalance() - withdrawalAmount;
+                    account.setBalance(newBalance);
                     System.out.println("Amount withdrawn successfully!");
+                } else if (withdrawalAmount < 100) {
+                    System.out.println("Withdrawal amount must be at least 100. Withdrawal failed.");
                 } else {
-                    System.out.println("Insufficient funds!");
+                    System.out.println("Insufficient funds. Withdrawal failed.");
                 }
-
                 return;
             }
         }
@@ -152,14 +166,14 @@ public class BankingApplication {
     }
 
     private static void searchAccount() {
-        System.out.print("Enter account number to search: ");
-        long accountNumber = scanner.nextLong();
+        System.out.print("Enter account name to search: ");
+        String accountName = scanner.next();
 
         for (BankAccount account : accounts) {
-            if (account.number == accountNumber) {
+            if (account.getName().equalsIgnoreCase(accountName)) {
                 System.out.println("Account found:");
-                System.out.println("Name: " + account.name + ", Number: " + account.number +
-                        ", Creation Date: " + account.creationDate + ", Balance: " + account.balance);
+                System.out.println("Account Number: " + account.getAccountNumber());
+                System.out.println("Account Name: " + account.getName());
                 return;
             }
         }
